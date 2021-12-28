@@ -1,0 +1,99 @@
+name: "Prepare release"
+on:
+  push:
+    branches:
+      - "release/[0-9]+.[0-9]+.[0-9]+"
+      - "hotfix/[0-9]+.[0-9]+.[0-9]+"
+jobs:
+  init:
+    name: Initialize
+    if: github.event.created
+    runs-on: ubuntu-latest
+    outputs:
+      commit: ${{ steps.bump.outputs.commit }}
+      beta_tag_name: ${{ steps.meta.outputs.beta_tag_name }}
+      upload_url: ${{ steps.create_release.outputs.upload_url || steps.get_upload_url.outputs.upload_url }}
+      release_name: ${{ steps.meta.outputs.release_name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get metadata
+        id: meta
+        run: |
+          RELEASE_TAG=$(echo "${{ github.ref }}" | awk -F / '{print $4}')
+          RELEASE_TYPE=$(echo "${{ github.ref }}" | awk -F / '{print $3}')
+          echo ::set-output name=branch::"${GITHUB_REF#refs/heads/}"
+          echo ::set-output name=release_type::"$RELEASE_TYPE"
+          echo ::set-output name=main_pr::"$RELEASE_TYPE/$RELEASE_TAG"
+          echo ::set-output name=canary_pr::"canary/$RELEASE_TAG"
+          echo ::set-output name=tag_name::"$RELEASE_TAG"
+          echo ::set-output name=beta_tag_name::"$RELEASE_TAG-beta"
+          echo ::set-output name=release_name::"v$RELEASE_TAG"
+      - name: Injeect env variables
+        uses: rlespinasse/github-slug-action@v3.x
+      - name: Get current beta tag
+        id: beta_tag
+        uses: octokit/graphql-action@v2.2.20
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          query: |
+            query GetBetaTag($repo: String!, $owner:String!, $tag_name: String!) {
+              repository(name: $repo, owner: $owner) {
+                ref(qualifiedName: $tag_name) {
+                  id
+                  target {
+                    oid
+                  }
+                }
+              }
+            }
+          owner: ${{ env.GITHUB_REPOSITORY_OWNER_PART }}
+          repo: ${{ env.GITHUB_REPOSITORY_NAME_PART }}
+          tag_name: ${{ steps.meta.outputs.beta_tag_name }}
+      - run: "echo 'latest release: ${{ steps.beta_tag.outputs.data }}'"
+      - name: Set beta tag meta
+        id: beta_tag_meta
+        run: |
+          echo ::set-output name=beta_tag_id::$( echo '${{ steps.beta_tag.outputs.data }}' | jq '.repository.ref?.id | select (.!=null)')
+          echo ::set-output name=beta_tag_target::$( echo '${{ steps.beta_tag.outputs.data }}' | jq '.repository.ref?.target?.oid | select (.!=null)')
+      - name: Bump version
+        id: bump
+        run: |
+          yarn version --new-version ${{ steps.meta.outputs.tag_name }} --no-git-tag-version
+          echo "::set-output name=commit::$(git rev-parse HEAD)"
+      - name: Commit package.json
+        id: commit
+        uses: swinton/commit@v2.x
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            package.json
+          commit-message: "Bump to ${{ steps.meta.outputs.release_name }}"
+          ref: ${{ steps.meta.outputs.branch }}
+      - name: Create pull request to develop
+        uses: repo-sync/pull-request@v2
+        with:
+          destination_branch: develop
+          source_branch: ${{ github.ref }}
+          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          pr_title: ${{ steps.meta.outputs.canary_pr }}
+          pr_draft: false
+          pr_allow_empty: true
+      - name: Create pull request to main
+        uses: repo-sync/pull-request@v2
+        with:
+          destination_branch: main
+          source_branch: ${{ github.ref }}
+          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          pr_title: ${{ steps.meta.outputs.main_pr }}
+          pr_draft: false
+          pr_allow_empty: true
+      - name: Create tag
+        uses: tvdias/github-tagger@v0.0.2
+        if: steps.beta_tag_meta.outputs.beta_tag_id == null
+        with:
+          repo-token: "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
+          tag: ${{ steps.meta.outputs.beta_tag_name }}
+          commit-sha: ${{ steps.commit.outputs.commit-sha }}

@@ -1,0 +1,37 @@
+{
+	"eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+	"editor.formatOnSave": false,
+	"[markdown]": {
+		"editor.formatOnSave": false
+	},
+	"search.exclude": {
+		"**/node_modules": true
+	},
+	"deno.enable": false,
+	"yaml.format.enable": true,
+	"[yaml]": {
+		"editor.insertSpaces": true,
+		"editor.formatOnSave": true
+	},
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": true,
+		"source.fixAll.markdownlint": true,
+		"source.addMissingImports": true
+	},
+	"eslint.options": {
+		"overrideConfigFile": ".eslintrc"
+	},
+	"prettier.enable": true,
+	"prettier.configPath": ".prettierrc",
+	"[json]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.formatOnSave": true
+	},
+	"css.validate": false,
+	"less.validate": false,
+	"scss.validate": false,
+	"npm.packageManager": "yarn",
+	"stylelint.enable": false,
+	"aws.sam.enableCodeLenses": false,
+	"typescript.tsdk": "node_modules/typescript/lib"
+}

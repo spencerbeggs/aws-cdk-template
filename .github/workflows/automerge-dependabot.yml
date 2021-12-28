@@ -1,0 +1,25 @@
+name: Automerge Dependabot pull requests
+on:
+  pull_request:
+    branches:
+      - develop
+jobs:
+  lint-test-merge:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 17.1.0
+          cache: "yarn"
+      - name: install dependencies
+        run: yarn install --production=false
+      - name: lint
+        run: yarn lint
+      - name: test
+        run: yarn test-ci
+      - name: merge
+        uses: fastify/github-action-merge-dependabot@v2.1.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}

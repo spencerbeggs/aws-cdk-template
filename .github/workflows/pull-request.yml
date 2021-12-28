@@ -1,0 +1,19 @@
+name: Lint and test code in pull requests
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+jobs:
+  check-pr-quality:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 17.1.0
+          cache: "yarn"
+      - run: yarn install --production=false
+      - run: yarn lint
+      - run: yarn test-ci

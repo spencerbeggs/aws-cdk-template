@@ -1,0 +1,60 @@
+{
+	"root": true,
+	"parser": "@typescript-eslint/parser",
+	"plugins": ["@typescript-eslint", "prettier"],
+	"extends": ["plugin:import/recommended", "plugin:import/typescript", "prettier"],
+	"parserOptions": {
+		"ecmaVersion": 2021,
+		"sourceType": "module"
+	},
+	"env": {
+		"node": true,
+		"es6": true
+	},
+	"rules": {
+		"prettier/prettier": "error",
+		"arrow-body-style": "off",
+		"prefer-arrow-callback": "off",
+		"semi": ["error", "always"],
+		"quotes": ["error", "double"],
+		"comma-dangle": "off",
+		"@typescript-eslint/explicit-function-return-type": "off",
+		"@typescript-eslint/no-explicit-any": 1,
+		"@typescript-eslint/no-var-requires": 0,
+		"@typescript-eslint/no-inferrable-types": [
+			"warn",
+			{
+				"ignoreParameters": true
+			}
+		],
+		"@typescript-eslint/no-unused-vars": "warn",
+		"@typescript-eslint/comma-dangle": ["off"],
+		"import/order": [
+			"error",
+			{
+				"groups": ["builtin", "external", "internal", "parent", "sibling", "index", "object"],
+				"newlines-between": "never",
+				"alphabetize": {
+					"order": "asc",
+					"caseInsensitive": true
+				}
+			}
+		]
+	},
+	"settings": {
+		"import/extensions": [".js", ".jsx", ".ts", ".tsx"]
+	},
+	"overrides": [
+		{
+			"files": [
+				"**/**/*.ts",
+				".github/**/*.ts",
+				"lib/**/*.ts",
+				"src/**/*.ts",
+				"test/**/*.ts",
+				"jest.config.ts",
+				"**/**/*.json"
+			]
+		}
+	]
+}

@@ -1,0 +1,14 @@
+{
+	"useTabs": true,
+	"tabWidth": 4,
+	"trailingComma": "none",
+	"printWidth": 125,
+	"overrides": [
+		{
+			"files": [".prettierrc", ".eslintrc"],
+			"options": {
+				"parser": "json"
+			}
+		}
+	]
+}

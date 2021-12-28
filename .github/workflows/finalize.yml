@@ -1,0 +1,76 @@
+name: "Finalize release"
+on:
+  push:
+    branches:
+      - main
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Inject env variables
+        uses: rlespinasse/github-slug-action@v3.x
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 17.1.0
+          cache: "yarn"
+      - id: package
+        run: echo ::set-output name=version::$(jq -r ".version" package.json)
+      - name: Check for release tag
+        id: release_tag
+        uses: octokit/graphql-action@v2.2.20
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          query: |
+            query GetBetaTag($repo: String!, $owner:String!, $tag_name: String!) {
+              repository(name: $repo, owner: $owner) {
+                ref(qualifiedName: $tag_name) {
+                  id
+                }
+              }
+            }
+          owner: ${{ env.GITHUB_REPOSITORY_OWNER_PART }}
+          repo: ${{ env.GITHUB_REPOSITORY_NAME_PART }}
+          tag_name: ${{ steps.package.outputs.version }}
+      - name: Check for beta tag
+        id: beta_tag
+        uses: octokit/graphql-action@v2.2.20
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          query: |
+            query GetBetaTag($repo: String!, $owner:String!, $tag_name: String!) {
+              repository(name: $repo, owner: $owner) {
+                ref(qualifiedName: $tag_name) {
+                  id
+                }
+              }
+            }
+          owner: ${{ env.GITHUB_REPOSITORY_OWNER_PART }}
+          repo: ${{ env.GITHUB_REPOSITORY_NAME_PART }}
+          tag_name: "${{ steps.package.outputs.version }}-beta"
+      - name: Delete beta tag
+        uses: octokit/graphql-action@v2.2.20
+        if: fromJson(steps.beta_tag.outputs.data).data.repository.ref.id
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          query: |
+            mutation DeleteBetaTag($tagId: String!) {
+              deleteRef(input: {refId: $tagId}) {
+                clientMutationId
+              }
+            }
+          tagId: fromJson(steps.beta_tag.outputs.data).data.repository.ref.id
+      - name: Create release
+        id: create_release
+        if: fromJson(steps.release_tag.outputs.data).data.repository.ref.id == null
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          name: v${{ steps.package.outputs.version }}
+          tag_name: ${{ steps.package.outputs.version }}
+          draft: false
+          target_commitish: ${{ github.ref }}
