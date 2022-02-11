@@ -1,13 +1,31 @@
 {
-	"extends": "@tsconfig/node16/tsconfig.json",
 	"root": true,
 	"compilerOptions": {
-		"module": "es2022",
-		"esModuleInterop": true,
+		"target": "ES2022",
+		"module": "ESNext",
 		"moduleResolution": "node",
-		"baseUrl": "."
+		"allowJs": true,
+		"skipLibCheck": true,
+		"strict": false,
+		"forceConsistentCasingInFileNames": true,
+		"noEmit": true,
+		"esModuleInterop": true,
+		"baseUrl": ".",
+		"paths": {
+			"@base/app": ["lib/base/app"],
+			"@base/constructs": ["lib/base/constructs"],
+			"@base/stacks": ["lib/base/stacks"]
+		},
+		"typeRoots": ["./types", "./node_modules/@types"]
 	},
 	"ts-node": {
-		"require": ["tsconfig-paths/register"]
-	}
+		"require": ["source-map-support/register", "typescript-transform-paths/register"],
+		"paths": {
+			"@base/app": ["lib/base/app"],
+			"@base/constructs": ["lib/base/constructs"],
+			"@base/stacks": ["lib/base/stacks"]
+		}
+	},
+	"include": ["src/**/*.mts", "src/**/*.ts", "test/**/*.mts", "test/**/*.ts", "lib/**/*.mts", "lib/**/*.ts"],
+	"exclude": ["node_modules", "cdk.out", "coverage"]
 }

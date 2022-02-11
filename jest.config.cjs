@@ -1,24 +1,20 @@
-/** @type {import('@ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
-	preset: "ts-jest",
-	testEnvironment: "node",
 	verbose: true,
 	roots: ["<rootDir>/test"],
 	testMatch: ["**/*.test.ts"],
 	transform: {
-		"^.+\\.tsx?$": "ts-jest"
+		"^.+\\.m?ts$": "ts-jest"
+	},
+	extensionsToTreatAsEsm: [".ts", ".mts"],
+	globals: {
+		"ts-jest": {
+			useESM: true
+		}
 	},
 	collectCoverage: true,
-	coverageReporters: ["json", "text"],
-	coverageThreshold:
-		process.env.TEST_ENV === "ci"
-			? {
-					global: {
-						branches: 100,
-						functions: 100,
-						lines: 100,
-						statements: 100
-					}
-			  }
-			: undefined
+	moduleNameMapper: {
+		"^@base/app$": "<rootDir>/lib/base/app",
+		"^@base/constructs$": "<rootDir>/lib/base/constructs",
+		"^@base/stacks$": "<rootDir>/lib/base/stacks"
+	}
 };

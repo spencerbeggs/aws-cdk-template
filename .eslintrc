@@ -4,8 +4,9 @@
 	"plugins": ["@typescript-eslint", "prettier"],
 	"extends": ["plugin:import/recommended", "plugin:import/typescript", "prettier"],
 	"parserOptions": {
-		"ecmaVersion": 2021,
-		"sourceType": "module"
+		"project": "./tsconfig.json",
+		"extraFileExtensions": [".mts"],
+		"createDefaultProgram": true
 	},
 	"env": {
 		"node": true,
@@ -16,7 +17,7 @@
 		"arrow-body-style": "off",
 		"prefer-arrow-callback": "off",
 		"semi": ["error", "always"],
-		"quotes": ["error", "double"],
+		"quotes": ["error", "double", { "avoidEscape": true, "allowTemplateLiterals": true }],
 		"comma-dangle": "off",
 		"@typescript-eslint/explicit-function-return-type": "off",
 		"@typescript-eslint/no-explicit-any": 1,
@@ -39,10 +40,34 @@
 					"caseInsensitive": true
 				}
 			}
+		],
+		"import/no-unresolved": [
+			2,
+			{
+				"ignore": ["@base/app", "@base/constructs", "@base/stacks"]
+			}
 		]
 	},
 	"settings": {
-		"import/extensions": [".js", ".jsx", ".ts", ".tsx"]
+		"import/extensions": [".js", ".jsx", ".ts", ".mts", ".tsx"],
+		"import/parsers": {
+			"@typescript-eslint/parser": [".ts", ".mts", ".tsx"]
+		},
+		"import/ignore": ["semver"],
+		"import/resolver": {
+			"typescript": {
+				"alwaysTryTypes": true,
+				"project": "tsconfig.json"
+			},
+			"alias": {
+				"map": [
+					["@base/app", "./lib/base/app"],
+					["@base/constructs", "./lib/base/construts"],
+					["@base/stacks", "./lib/base/stacks"]
+				],
+				"extensions": [".ts", ".mts", ".js", ".jsx", ".json"]
+			}
+		}
 	},
 	"overrides": [
 		{
