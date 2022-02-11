@@ -9,7 +9,7 @@ export const getPackageJson = async (): Promise<PackageJson> => {
 const pkg = await getPackageJson();
 const target = pkg?.engines?.["node"] ?? "missing";
 
-if (!semver.satisfies(process.version, target)) {
+if (process.env.IS_CODEBUILD !== "true" && !semver.satisfies(process.version, target)) {
 	throw new Error(`The current node version ${process.version} does not satisfy the required version ${target} .`);
 }
 

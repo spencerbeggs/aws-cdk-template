@@ -1,5 +1,6 @@
 import slugify from "@sindresorhus/slugify";
 import { SecretValue, Stack, StackProps } from "aws-cdk-lib";
+import { BuildSpec } from "aws-cdk-lib/aws-codebuild";
 import { HostedZone, HostedZoneAttributes, IHostedZone } from "aws-cdk-lib/aws-route53";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { CodePipeline, CodePipelineSource, ShellStep } from "aws-cdk-lib/pipelines";
@@ -14,6 +15,7 @@ export interface BasePipelineProps extends StackProps {
 	rootZone?: HostedZoneAttributes | IHostedZone | boolean;
 	hostedZoneId?: string;
 	zoneName?: string;
+	dockerEnabledForSynth?: boolean;
 }
 
 export class BasePipeline extends Stack {
@@ -44,13 +46,30 @@ export class BasePipeline extends Stack {
 				props
 			)
 		);
-		const { rootZone, hostedZoneId, zoneName, logs } = props;
+		const { rootZone, hostedZoneId, zoneName, logs, dockerEnabledForSynth = true } = props;
 		const repo = props.repo ?? scope.node.tryGetContext("PIPELINE_REPO");
 		const branch = props.branch ?? scope.node.tryGetContext("PIPELINE_BRANCH") ?? "main";
 		const tokenName = props.tokenName ?? scope.node.tryGetContext("PIPELINE_TOKEN_NAME") ?? "github-oauth-token";
 		this._app_name = id;
 		this.pipeline = new CodePipeline(this, this.__("pipeline"), {
 			pipelineName: `${id}-pipeline`,
+			dockerEnabledForSynth,
+			codeBuildDefaults: {
+				partialBuildSpec: BuildSpec.fromObject({
+					version: "0.2",
+					env: {
+						"exported-variables": ["IS_CODEBUILD"]
+					},
+					phases: {
+						install: {
+							"runtime-versions": {
+								nodejs: 14
+							},
+							commands: ['export IS_CODEBUILD="true"', "n 16.14.0"]
+						}
+					}
+				})
+			},
 			synth: new ShellStep(this.__("synth"), {
 				input: CodePipelineSource.gitHub(repo, branch, {
 					authentication: SecretValue.secretsManager(tokenName)
@@ -61,12 +80,12 @@ export class BasePipeline extends Stack {
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		function isZoneLookup(object: any): object is HostedZoneAttributes {
-			return "hostedZoneId" in object && "zoneName" in object;
+			return typeof object !== "boolean" && "hostedZoneId" in object && "zoneName" in object;
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		function isZone(object: any): object is IHostedZone {
-			return "hostedZoneId" in object && "zoneName" in object;
+			return typeof object !== "boolean" && "hostedZoneId" in object && "zoneName" in object;
 		}
 		if (rootZone === true && hostedZoneId && zoneName) {
 			this.hostedZone = HostedZone.fromHostedZoneAttributes(this, this.__("root hosted zone"), {
