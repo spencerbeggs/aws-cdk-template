@@ -6,7 +6,7 @@ The workspace uses [AWS CDK v2](https://docs.aws.amazon.com/cdk/v2/guide/migrati
 
 ## Quickstart
 
-This repository contains a cli script to quickly reset a repo that is cloned from the template and prepare it to be deployed to AWS. The script assumes that you have [Node.js v16.14.0](https://nodejs.org/dist/v16.14.0/), [yarn v1.22.17](https://yarnpkg.com/), [AWS CDK v2][https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html](AWS CLI v2), (<https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html>) and [git](https://git-scm.com/downloads) available in your workspace. If you do not, a step-by-step installation and explanation is available in the next section. If you do:
+This repository contains a cli script to quickly reset a repo that is cloned from the template and prepare it to be deployed to AWS. The script assumes that you have [Node.js v16.14.0](https://nodejs.org/dist/v16.14.0/), [yarn v1.22.17](https://yarnpkg.com/), [AWS CDK v2](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html), [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) and [git](https://git-scm.com/downloads) available in your workspace. If you do not, a step-by-step installation and explanation is available in the next section. If you do:
 
 ```bash
 yarn install
